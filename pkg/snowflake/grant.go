@@ -151,9 +151,16 @@ func StageGrant(db, schema, stage string) GrantBuilder {
 
 // ViewGrant returns a pointer to a CurrentGrantBuilder for a view
 func ViewGrant(db, schema, view string, all bool) GrantBuilder {
+	var qualifiedName string
+	if all {
+		qualifiedName = fmt.Sprintf(`"%v"."%v"`, db, schema)
+	} else {
+		qualifiedName = fmt.Sprintf(`"%v"."%v"."%v"`, db, schema, view)
+	}
+
 	return &CurrentGrantBuilder{
 		name:          view,
-		qualifiedName: fmt.Sprintf(`"%v"."%v"."%v"`, db, schema, view),
+		qualifiedName: qualifiedName,
 		grantType:     viewType,
 		allGrant:      all,
 	}

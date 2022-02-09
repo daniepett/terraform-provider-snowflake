@@ -201,7 +201,8 @@ func ReadViewGrant(d *schema.ResourceData, meta interface{}) error {
 	if futureViewsEnabled {
 		builder = snowflake.FutureViewGrant(dbName, schemaName)
 	} else {
-		builder = snowflake.ViewGrant(dbName, schemaName, viewName)
+		// TODO: FIX
+		builder = snowflake.ViewGrant(dbName, schemaName, viewName, false)
 	}
 
 	return readGenericGrant(d, meta, viewGrantSchema, builder, futureViewsEnabled, validViewPrivileges)
@@ -223,7 +224,8 @@ func DeleteViewGrant(d *schema.ResourceData, meta interface{}) error {
 	if futureViews {
 		builder = snowflake.FutureViewGrant(dbName, schemaName)
 	} else {
-		builder = snowflake.ViewGrant(dbName, schemaName, viewName)
+		// TODO: FIX
+		builder = snowflake.ViewGrant(dbName, schemaName, viewName, false)
 	}
 	return deleteGenericGrant(d, meta, builder)
 }
@@ -261,7 +263,8 @@ func UpdateViewGrant(d *schema.ResourceData, meta interface{}) error {
 	if futureViews {
 		builder = snowflake.FutureViewGrant(dbName, schemaName)
 	} else {
-		builder = snowflake.ViewGrant(dbName, schemaName, viewName)
+		// TODO: FIX
+		builder = snowflake.ViewGrant(dbName, schemaName, viewName, false)
 	}
 
 	// first revoke
