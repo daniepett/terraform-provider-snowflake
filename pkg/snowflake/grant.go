@@ -33,7 +33,7 @@ const (
 )
 
 type GrantExecutable interface {
-	Grant(p string, w bool) string
+	Grant(p string, w bool, all bool) string
 	Revoke(p string) []string
 	Show() string
 }
@@ -51,6 +51,7 @@ type CurrentGrantBuilder struct {
 	name          string
 	qualifiedName string
 	grantType     grantType
+	allGrant      bool
 }
 
 // Name returns the object name for this CurrentGrantBuilder
@@ -149,11 +150,12 @@ func StageGrant(db, schema, stage string) GrantBuilder {
 }
 
 // ViewGrant returns a pointer to a CurrentGrantBuilder for a view
-func ViewGrant(db, schema, view string) GrantBuilder {
+func ViewGrant(db, schema, view string, all bool) GrantBuilder {
 	return &CurrentGrantBuilder{
 		name:          view,
 		qualifiedName: fmt.Sprintf(`"%v"."%v"."%v"`, db, schema, view),
 		grantType:     viewType,
+		allGrant:      all,
 	}
 }
 
@@ -330,12 +332,14 @@ func (gb *CurrentGrantBuilder) Share(n string) GrantExecutable {
 }
 
 // Grant returns the SQL that will grant privileges on the grant to the grantee
-func (ge *CurrentGrantExecutable) Grant(p string, w bool) string {
+func (ge *CurrentGrantExecutable) Grant(p string, w bool, all bool) string {
 	var template string
 	if p == `OWNERSHIP` {
 		template = `GRANT %v ON %v %v TO %v "%v" COPY CURRENT GRANTS`
-	} else if w {
+	} else if w && !all {
 		template = `GRANT %v ON %v %v TO %v "%v" WITH GRANT OPTION`
+	} else if !w && all {
+		template = `GRANT %v ON ALL %vS IN %v %v TO %v "%v"`
 	} else {
 		template = `GRANT %v ON %v %v TO %v "%v"`
 	}

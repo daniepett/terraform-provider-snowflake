@@ -143,14 +143,14 @@ func createGenericGrantRolesAndShares(
 ) error {
 	db := meta.(*sql.DB)
 	for _, role := range roles {
-		err := snowflake.Exec(db, builder.Role(role).Grant(priv, grantOption))
+		err := snowflake.Exec(db, builder.Role(role).Grant(priv, grantOption, false))
 		if err != nil {
 			return err
 		}
 	}
 
 	for _, share := range shares {
-		err := snowflake.Exec(db, builder.Share(share).Grant(priv, grantOption))
+		err := snowflake.Exec(db, builder.Share(share).Grant(priv, grantOption, false))
 		if err != nil {
 			return err
 		}

@@ -58,7 +58,16 @@ var viewGrantSchema = map[string]*schema.Schema{
 		Description:   "When this is set to true and a schema_name is provided, apply this grant on all future views in the given schema. When this is true and no schema_name is provided apply this grant on all future views in the given database. The view_name and shares fields must be unset in order to use on_future.",
 		Default:       false,
 		ForceNew:      true,
-		ConflictsWith: []string{"view_name", "shares"},
+		ConflictsWith: []string{"view_name", "shares", "on_all"},
+	},
+	"on_all": {
+		Type:     schema.TypeBool,
+		Optional: true,
+		// TODO: FIX DESCRIPTION
+		Description:   "When this is set to true and a schema_name is provided, apply this grant on all future views in the given schema. When this is true and no schema_name is provided apply this grant on all future views in the given database. The view_name and shares fields must be unset in order to use on_future.",
+		Default:       false,
+		ForceNew:      true,
+		ConflictsWith: []string{"view_name", "shares", "on_future"},
 	},
 	"with_grant_option": {
 		Type:        schema.TypeBool,
@@ -106,24 +115,25 @@ func CreateViewGrant(d *schema.ResourceData, meta interface{}) error {
 	dbName := d.Get("database_name").(string)
 	priv := d.Get("privilege").(string)
 	futureViews := d.Get("on_future").(bool)
+	allViews := d.Get("on_all").(bool)
 	grantOption := d.Get("with_grant_option").(bool)
 
-	if (schemaName == "") && !futureViews {
-		return errors.New("schema_name must be set unless on_future is true.")
+	if (schemaName == "") && !(futureViews || allViews) {
+		return errors.New("schema_name must be set unless on_future or on_all is true.")
 	}
 
-	if (viewName == "") && !futureViews {
-		return errors.New("view_name must be set unless on_future is true.")
+	if (viewName == "") && !(futureViews || allViews) {
+		return errors.New("view_name must be set unless on_future or on_all is true.")
 	}
-	if (viewName != "") && futureViews {
-		return errors.New("view_name must be empty if on_future is true.")
+	if (viewName != "") && (futureViews || allViews) {
+		return errors.New("view_name must be empty if on_future or on_all is true.")
 	}
 
 	var builder snowflake.GrantBuilder
 	if futureViews {
 		builder = snowflake.FutureViewGrant(dbName, schemaName)
 	} else {
-		builder = snowflake.ViewGrant(dbName, schemaName, viewName)
+		builder = snowflake.ViewGrant(dbName, schemaName, viewName, allViews)
 	}
 
 	err := createGenericGrant(d, meta, builder)

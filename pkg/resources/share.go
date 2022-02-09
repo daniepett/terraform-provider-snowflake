@@ -111,7 +111,7 @@ func setAccounts(d *schema.ResourceData, meta interface{}) error {
 		// case where the main db doesn't already exist, so it will need to be revoked
 		// before deleting the temp db. Where USAGE hasn't been already granted it is not
 		// an error to revoke it, so it's ok to just do the revoke every time.
-		err = snowflake.Exec(db, tempDBGrant.Share(name).Grant("REFERENCE_USAGE", false))
+		err = snowflake.Exec(db, tempDBGrant.Share(name).Grant("REFERENCE_USAGE", false, false))
 		if err != nil {
 			return errors.Wrapf(err, "error creating temporary DB REFERENCE_USAGE grant %v", tempName)
 		}
